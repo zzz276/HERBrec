@@ -12,8 +12,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.HERBrec">
         <activity
-            android:name=".MainActivity"
+            android:name=".menus.HomeActivity"
             android:exported="true"
+            android:theme="@style/Theme.App.Starting"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -22,11 +23,19 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".HomeActivity"
+            android:name=".menus.SearchActivity"
             android:exported="false"
+            android:label="@string/title_activity_search"
+            android:theme="@style/Theme.HERBrec"
             android:windowSoftInputMode="adjustResize" />
         <activity
-            android:name=".UserActivity"
+            android:name=".menus.FavoriteActivity"
+            android:exported="false"
+            android:label="@string/title_activity_favorite"
+            android:theme="@style/Theme.HERBrec"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".menus.UserActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
         <activity
@@ -38,15 +47,17 @@
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
         <activity
-            android:name=".SplashActivity"
-            android:exported="true"
-            android:windowSoftInputMode="adjustResize">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
+            android:name=".credentials.LoginActivity"
+            android:exported="false"
+            android:label="@string/title_activity_login"
+            android:theme="@style/Theme.HERBrec"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".credentials.RegisterActivity"
+            android:exported="false"
+            android:label="@string/title_activity_register"
+            android:theme="@style/Theme.HERBrec"
+            android:windowSoftInputMode="adjustResize" />
     </application>
 
 </manifest>
