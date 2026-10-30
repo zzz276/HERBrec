@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.compose.compiler)
+    id("com.google.devtools.ksp")
 }
 
 android {
@@ -71,4 +72,8 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.11.0")
     implementation("androidx.compose.runtime:runtime-livedata")
     implementation("androidx.core:core-splashscreen:1.2.0")
+
+    val roomVersion = "3.0.3"
+    implementation("androidx.room3:room3-runtime:$roomVersion")
+    ksp("androidx.room3:room3-compiler:$roomVersion")
 }
