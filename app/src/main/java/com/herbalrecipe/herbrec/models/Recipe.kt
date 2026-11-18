@@ -6,14 +6,30 @@ import androidx.room3.Entity
 import androidx.room3.Insert
 import androidx.room3.PrimaryKey
 import androidx.room3.Query
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
 @Entity(tableName = "recipes")
+@Serializable
 data class Recipe(
-    @PrimaryKey val recipeId: String,
-    val recipeTitle: String,
-    val recipeDesc: String,
-    val recipePict: String,
-    val recipeComments: List<Comment>,
+    @PrimaryKey
+    @SerialName("recipe_id")
+    val recipeId: String = "",
+
+    @SerialName("recipe_title")
+    val recipeTitle: String = "",
+
+    @SerialName("recipe_ingredients")
+    val recipeIngredients: String = "",
+
+    @SerialName("recipe_steps")
+    val recipeSteps: String = "",
+
+    @SerialName("recipe_serves")
+    val recipeServes: String = "",
+
+//    @SerialName("recipe_pict")
+//    val recipePict: String? = null,
 )
 
 @Dao

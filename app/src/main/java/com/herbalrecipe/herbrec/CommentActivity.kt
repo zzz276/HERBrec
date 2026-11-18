@@ -6,22 +6,20 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -45,7 +43,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.herbalrecipe.herbrec.models.Comment
-import com.herbalrecipe.herbrec.ui.components.CredentialTextField
 import com.herbalrecipe.herbrec.ui.theme.DarkMaroon
 import com.herbalrecipe.herbrec.ui.theme.HERBrecTheme
 import com.herbalrecipe.herbrec.ui.theme.RedAccent
@@ -86,7 +83,8 @@ fun CommentScreen(modifier: Modifier = Modifier) {
             )
         )
     }
-    var newCommentText by remember { mutableStateOf("") }
+
+    var searchQuery by remember { mutableStateOf("") }
 
     Box(
         modifier = modifier
@@ -100,10 +98,9 @@ fun CommentScreen(modifier: Modifier = Modifier) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(130.dp)
+                    .height(80.dp)
                     .background(
-                        color = Color(0xFF59AC77),
-                        shape = RoundedCornerShape(bottomStart = 28.dp, bottomEnd = 28.dp)
+                        color = Color(0xFF59AC77)
                     )
                     .padding(horizontal = 16.dp),
                 contentAlignment = Alignment.Center
@@ -155,57 +152,57 @@ fun CommentScreen(modifier: Modifier = Modifier) {
                 }
             }
 
-            // Bottom Input Bar with Text Field (Replacing Komentar & Tandai sudah dibaca buttons)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.White)
-                    .padding(horizontal = 24.dp, vertical = 16.dp)
-                    .imePadding()
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    CredentialTextField(
-                        value = newCommentText,
-                        onValueChange = { newCommentText = it },
-                        placeholderText = "Tulis komentar...",
-                        modifier = Modifier.weight(1f)
+                    .padding(horizontal = 20.dp)
+                    .height(52.dp)
+                    .background(
+                        color = RedBackground,
+                        shape = RoundedCornerShape(16.dp)
                     )
-
-                    // Send Button
-                    Box(
-                        modifier = Modifier
-                            .size(52.dp)
-                            .background(
-                                color = Color(0xFF59AC77),
-                                shape = RoundedCornerShape(16.dp)
+                    .padding(horizontal = 20.dp),
+                contentAlignment = Alignment.CenterStart
+            ) {
+                BasicTextField(
+                    value = searchQuery,
+                    onValueChange = { searchQuery = it },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(end = 36.dp),
+                    textStyle = TextStyle(
+                        color = DarkMaroon,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        fontStyle = FontStyle.Italic,
+                        fontFamily = FontFamily.Serif
+                    ),
+                    singleLine = true,
+                    decorationBox = { innerTextField ->
+                        if (searchQuery.isEmpty()) {
+                            Text(
+                                text = "Komentar",
+                                style = TextStyle(
+                                    color = Color(0xFFAC7C7C),
+                                    fontSize = 18.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    fontStyle = FontStyle.Italic,
+                                    fontFamily = FontFamily.Serif
+                                )
                             )
-                            .clickable {
-                                if (newCommentText.isNotBlank()) {
-                                    comments = comments + Comment(
-                                        commentId = System.currentTimeMillis().toString(),
-                                        userName = "Username 3",
-                                        commentDesc = newCommentText.trim(),
-                                        timestamp = "3 Juli 2026, 13:45"
-                                    )
-                                    newCommentText = ""
-                                }
-                            },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "➤",
-                            style = TextStyle(
-                                color = Color.White,
-                                fontSize = 20.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                        )
+                        }
+                        innerTextField()
                     }
-                }
+                )
+
+                Icon(
+                    painter = painterResource(id = R.drawable.search_24),
+                    contentDescription = "Search",
+                    tint = RedAccent,
+                    modifier = Modifier
+                        .size(30.dp)
+                        .align(Alignment.CenterEnd)
+                )
             }
         }
     }

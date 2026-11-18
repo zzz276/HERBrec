@@ -59,9 +59,12 @@ class ViewRecipeActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        val recipeTitle = intent.getStringExtra("EXTRA_RECIPE_TITLE") ?: "Resep 1"
+        val recipeTitle = intent.getStringExtra("EXTRA_RECIPE_TITLE") ?: "Resep untuk Diabetes Mellitus tanpa Komplikasi"
         val username = intent.getStringExtra("EXTRA_USERNAME") ?: "Username 3"
         val createdDate = intent.getStringExtra("EXTRA_CREATED_DATE") ?: "7 Juli 2026, 1:37"
+        val recipeIngredients = intent.getStringExtra("EXTRA_RECIPE_INGREDIENTS") ?: "10 gram herba sambiloto kering, 21 lembar atau sejumput daun mimba, dan 1 jengkal batang brotowali yang dipotong-potong."
+        val recipeSteps = intent.getStringExtra("EXTRA_RECIPE_STEPS") ?: "Semua bahan direbus dengan air sebanyak 5 gelas hingga menjadi 3 gelas dengan menggunakan api kecil."
+        val recipeServes = intent.getStringExtra("EXTRA_RECIPE_SERVES") ?: "Diminum 3 kali 1 gelas setiap hari, 1 jam sebelum makan."
 
         setContent {
             HERBrecTheme {
@@ -70,6 +73,9 @@ class ViewRecipeActivity : ComponentActivity() {
                         recipeTitle = recipeTitle,
                         username = username,
                         createdDate = createdDate,
+                        recipeIngredients = recipeIngredients,
+                        recipeSteps = recipeSteps,
+                        recipeServes = recipeServes,
                         modifier = Modifier.padding(innerPadding),
                     )
                 }
@@ -84,6 +90,9 @@ fun ViewRecipeScreen(
     recipeTitle: String = "Resep 1",
     username: String = "Username 3",
     createdDate: String = "7 Juli 2026, 1:37",
+    recipeIngredients: String = "10 gram herba sambiloto kering, 21 lembar atau sejumput daun mimba, dan 1 jengkal batang brotowali yang dipotong-potong.",
+    recipeSteps: String = "Semua bahan direbus dengan air sebanyak 5 gelas hingga menjadi 3 gelas dengan menggunakan api kecil.",
+    recipeServes: String = "Diminum 3 kali 1 gelas setiap hari, 1 jam sebelum makan.",
 ) {
     val context = LocalContext.current
     var isLiked by remember { mutableStateOf(value = false) }
@@ -103,10 +112,9 @@ fun ViewRecipeScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(130.dp)
+                    .height(80.dp)
                     .background(
-                        color = Color(0xFF59AC77),
-                        shape = RoundedCornerShape(bottomStart = 28.dp, bottomEnd = 28.dp)
+                        color = Color(0xFF59AC77)
                     )
                     .padding(horizontal = 16.dp),
                 contentAlignment = Alignment.Center
@@ -126,7 +134,7 @@ fun ViewRecipeScreen(
 
                 // Title
                 Text(
-                    text = recipeTitle,
+                    text = "Detail Resep",
                     style = TextStyle(
                         color = Color.White,
                         fontSize = 36.sp,
@@ -146,6 +154,18 @@ fun ViewRecipeScreen(
                     .fillMaxWidth()
                     .padding(horizontal = 24.dp)
             ) {
+                Text(
+                    text = recipeTitle,
+                    style = TextStyle(
+                        color = Color(0xFF1A1C19),
+                        fontSize = 36.sp,
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center
+                    )
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
                 Text(
                     text = buildAnnotatedString {
                         append("Dibuat oleh ")
@@ -197,14 +217,29 @@ fun ViewRecipeScreen(
                     .padding(horizontal = 24.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                repeat(3) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(160.dp)
-                            .background(Color.Black)
+                Text(
+                    text = recipeIngredients,
+                    style = TextStyle(
+                        color = Color.Black,
+                        fontSize = 24.sp
                     )
-                }
+                )
+
+                Text(
+                    text = recipeSteps,
+                    style = TextStyle(
+                        color = Color.Black,
+                        fontSize = 24.sp
+                    )
+                )
+
+                Text(
+                    text = recipeServes,
+                    style = TextStyle(
+                        color = Color.Black,
+                        fontSize = 24.sp
+                    )
+                )
             }
 
             Spacer(modifier = Modifier.height(32.dp))

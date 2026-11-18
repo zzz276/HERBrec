@@ -12,8 +12,8 @@ import androidx.room3.Update
 data class User(
     @PrimaryKey val userId: String,
     val userName: String,
-    val userEmail: String, // Opsional?
-    val userPassword: String, // Opsional, dipakai jika menggunakan fungsi untuk mengenkripsi password.
+//    val userEmail: String, // Opsional?
+//    val userPassword: String, // Opsional, dipakai jika menggunakan fungsi untuk mengenkripsi password.
     val userFavorites: List<Recipe>,
 )
 
