@@ -38,10 +38,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -49,16 +46,16 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.lifecycleScope
 import com.herbalrecipe.herbrec.CreateRecipeActivity
 import com.herbalrecipe.herbrec.ViewRecipeActivity
-import com.herbalrecipe.herbrec.clients.SupabaseInit
 import com.herbalrecipe.herbrec.clients.fetchAllRecipes
 import com.herbalrecipe.herbrec.models.Recipe
+import com.herbalrecipe.herbrec.ui.components.AppBar
 import com.herbalrecipe.herbrec.ui.components.BottomNavigationBar
 import com.herbalrecipe.herbrec.ui.components.NavScreen
 import com.herbalrecipe.herbrec.ui.components.RecipeCard
+import com.herbalrecipe.herbrec.ui.theme.Black
 import com.herbalrecipe.herbrec.ui.theme.GreenSupport
 import com.herbalrecipe.herbrec.ui.theme.HERBrecTheme
-import io.github.jan.supabase.postgrest.from
-import io.github.jan.supabase.postgrest.query.Columns
+import com.herbalrecipe.herbrec.ui.theme.White
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.milliseconds
@@ -113,37 +110,19 @@ fun HomeScreen() {
     ) { innerPadding ->
         Box(
             modifier = Modifier
+                .background(White)
                 .fillMaxSize()
                 .padding(innerPadding)
-                .background(Color.White)
         ) {
             Column(modifier = Modifier.fillMaxSize()) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(80.dp)
-                        .background(GreenSupport),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "HERBrec",
-                        style = TextStyle(
-                            color = Color.White,
-                            fontSize = 38.sp,
-                            fontWeight = FontWeight.ExtraBold,
-                            fontStyle = FontStyle.Italic,
-                            fontFamily = FontFamily.Serif,
-                            textAlign = TextAlign.Center,
-                        )
-                    )
-                }
+                AppBar("HERBrec")
 
                 // Recipe Cards List
                 Column(
                     modifier = Modifier
+                        .padding(horizontal = 24.dp, vertical = 20.dp)
                         .fillMaxSize()
-                        .verticalScroll(scrollState)
-                        .padding(horizontal = 24.dp, vertical = 20.dp),
+                        .verticalScroll(scrollState),
                     verticalArrangement = Arrangement.spacedBy(20.dp)
                 ) {
                     if (isLoading) {
@@ -152,9 +131,7 @@ fun HomeScreen() {
                                 .fillMaxWidth()
                                 .height(200.dp),
                             contentAlignment = Alignment.Center
-                        ) {
-                            CircularProgressIndicator(color = Color(0xFF59AC77))
-                        }
+                        ) { CircularProgressIndicator(color = GreenSupport) }
                     } else {
                         recipes.forEach { recipe ->
                             RecipeCard(
@@ -166,6 +143,7 @@ fun HomeScreen() {
                                         putExtra("EXTRA_RECIPE_STEPS", recipe.recipeSteps)
                                         putExtra("EXTRA_RECIPE_SERVES", recipe.recipeServes)
                                     }
+
                                     context.startActivity(intent)
                                 }
                             )
@@ -189,7 +167,7 @@ fun HomeScreen() {
                         )
                     )
                     .border(
-                        border = BorderStroke(1.5.dp, Color.Black),
+                        border = BorderStroke(1.5.dp, Black),
                         shape = RoundedCornerShape(18.dp)
                     )
                     .clickable {
@@ -201,7 +179,7 @@ fun HomeScreen() {
                 Text(
                     text = "+",
                     style = TextStyle(
-                        color = Color.White,
+                        color = White,
                         fontSize = 40.sp,
                         fontWeight = FontWeight.Bold
                     )

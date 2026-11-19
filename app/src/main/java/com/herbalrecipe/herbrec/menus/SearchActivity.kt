@@ -36,6 +36,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.herbalrecipe.herbrec.R
+import com.herbalrecipe.herbrec.ui.components.AppBar
 import com.herbalrecipe.herbrec.ui.components.BottomNavigationBar
 import com.herbalrecipe.herbrec.ui.components.NavScreen
 import com.herbalrecipe.herbrec.ui.theme.DarkMaroon
@@ -43,6 +44,7 @@ import com.herbalrecipe.herbrec.ui.theme.GreenSupport
 import com.herbalrecipe.herbrec.ui.theme.HERBrecTheme
 import com.herbalrecipe.herbrec.ui.theme.RedAccent
 import com.herbalrecipe.herbrec.ui.theme.RedBackground
+import com.herbalrecipe.herbrec.ui.theme.White
 
 class SearchActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -68,29 +70,10 @@ fun SearchScreen() {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .background(Color.White)
+                .background(White)
         ) {
             // Top App Bar Header
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(80.dp)
-                    .background(GreenSupport),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "HERBrec",
-                    style = TextStyle(
-                        color = Color.White,
-                        fontSize = 38.sp,
-                        fontWeight = FontWeight.ExtraBold,
-                        fontStyle = FontStyle.Italic,
-                        fontFamily = FontFamily.Serif,
-                        textAlign = TextAlign.Center,
-                    )
-                )
-            }
-
+            AppBar("HERBrec")
             Spacer(modifier = Modifier.height(24.dp))
 
             // Search Bar Input Field

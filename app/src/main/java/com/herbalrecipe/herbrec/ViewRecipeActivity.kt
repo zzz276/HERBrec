@@ -1,6 +1,5 @@
 package com.herbalrecipe.herbrec
 
-import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -26,7 +25,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -44,15 +42,17 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.herbalrecipe.herbrec.ui.components.AppBar
+import com.herbalrecipe.herbrec.ui.theme.Black
+import com.herbalrecipe.herbrec.ui.theme.BlackCharcoal
 import com.herbalrecipe.herbrec.ui.theme.HERBrecTheme
+import com.herbalrecipe.herbrec.ui.theme.White
 
 class ViewRecipeActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -95,13 +95,13 @@ fun ViewRecipeScreen(
     recipeServes: String = "Diminum 3 kali 1 gelas setiap hari, 1 jam sebelum makan.",
 ) {
     val context = LocalContext.current
-    var isLiked by remember { mutableStateOf(value = false) }
+    var isLiked by remember { mutableStateOf(false) }
     val scrollState = rememberScrollState()
 
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(Color.White)
+            .background(White)
     ) {
         Column(
             modifier = Modifier
@@ -109,43 +109,7 @@ fun ViewRecipeScreen(
                 .verticalScroll(scrollState)
         ) {
             // Header Top Bar
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(80.dp)
-                    .background(
-                        color = Color(0xFF59AC77)
-                    )
-                    .padding(horizontal = 16.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                // Back Button
-                IconButton(
-                    onClick = { (context as? Activity)?.finish() },
-                    modifier = Modifier.align(Alignment.CenterStart)
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.angle_left_24),
-                        contentDescription = "Back",
-                        tint = Color.White,
-                        modifier = Modifier.size(36.dp)
-                    )
-                }
-
-                // Title
-                Text(
-                    text = "Detail Resep",
-                    style = TextStyle(
-                        color = Color.White,
-                        fontSize = 36.sp,
-                        fontWeight = FontWeight.Bold,
-                        fontStyle = FontStyle.Italic,
-                        fontFamily = FontFamily.Serif,
-                        textAlign = TextAlign.Center
-                    )
-                )
-            }
-
+            AppBar(context, "Detail Resep")
             Spacer(modifier = Modifier.height(16.dp))
 
             // Sub-header Text: Dibuat oleh Username 3 pada tanggal 7 Juli 2026, 1:37
@@ -157,7 +121,7 @@ fun ViewRecipeScreen(
                 Text(
                     text = recipeTitle,
                     style = TextStyle(
-                        color = Color(0xFF1A1C19),
+                        color = BlackCharcoal,
                         fontSize = 36.sp,
                         fontWeight = FontWeight.Bold,
                         textAlign = TextAlign.Center
@@ -177,6 +141,7 @@ fun ViewRecipeScreen(
                             append(createdDate)
                         }
                     },
+
                     style = TextStyle(
                         color = Color(0xFF1A1C19),
                         fontSize = 14.sp
@@ -200,7 +165,7 @@ fun ViewRecipeScreen(
                     Text(
                         text = username,
                         style = TextStyle(
-                            color = Color.Black,
+                            color = Black,
                             fontSize = 24.sp,
                             fontWeight = FontWeight.Bold
                         )
@@ -220,7 +185,7 @@ fun ViewRecipeScreen(
                 Text(
                     text = recipeIngredients,
                     style = TextStyle(
-                        color = Color.Black,
+                        color = Black,
                         fontSize = 24.sp
                     )
                 )
@@ -228,7 +193,7 @@ fun ViewRecipeScreen(
                 Text(
                     text = recipeSteps,
                     style = TextStyle(
-                        color = Color.Black,
+                        color = Black,
                         fontSize = 24.sp
                     )
                 )
@@ -236,7 +201,7 @@ fun ViewRecipeScreen(
                 Text(
                     text = recipeServes,
                     style = TextStyle(
-                        color = Color.Black,
+                        color = Black,
                         fontSize = 24.sp
                     )
                 )
@@ -263,12 +228,10 @@ fun ViewRecipeScreen(
                         )
                     )
                     .border(
-                        border = BorderStroke(1.5.dp, Color.Black),
+                        border = BorderStroke(1.5.dp, Black),
                         shape = RoundedCornerShape(18.dp)
                     )
-                    .clickable {
-                        isLiked = !isLiked
-                    },
+                    .clickable { isLiked = !isLiked },
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
@@ -290,11 +253,12 @@ fun ViewRecipeScreen(
                         )
                     )
                     .border(
-                        border = BorderStroke(1.5.dp, Color.Black),
+                        border = BorderStroke(1.5.dp, Black),
                         shape = RoundedCornerShape(18.dp)
                     )
                     .clickable {
                         val intent = Intent(context, CommentActivity::class.java)
+
                         context.startActivity(intent)
                     },
                 contentAlignment = Alignment.Center
@@ -302,8 +266,8 @@ fun ViewRecipeScreen(
                 Icon(
                     painter = painterResource(id = R.drawable.comment_alt_24),
                     contentDescription = "Comment",
-                    tint = Color(0xFF1A1C19),
-                    modifier = Modifier.size(32.dp)
+                    modifier = Modifier.size(32.dp),
+                    tint = BlackCharcoal
                 )
             }
         }
