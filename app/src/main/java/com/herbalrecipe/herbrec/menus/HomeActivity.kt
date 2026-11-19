@@ -44,6 +44,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.lifecycleScope
+import com.herbalrecipe.herbrec.CommentActivity
 import com.herbalrecipe.herbrec.CreateRecipeActivity
 import com.herbalrecipe.herbrec.ViewRecipeActivity
 import com.herbalrecipe.herbrec.clients.fetchAllRecipes
@@ -138,10 +139,18 @@ fun HomeScreen() {
                                 recipeTitle = recipe.recipeTitle,
                                 onDetailClick = {
                                     val intent = Intent(context, ViewRecipeActivity::class.java).apply {
+                                        putExtra("EXTRA_RECIPE_ID", recipe.recipeId)
                                         putExtra("EXTRA_RECIPE_TITLE", recipe.recipeTitle)
                                         putExtra("EXTRA_RECIPE_INGREDIENTS", recipe.recipeIngredients)
                                         putExtra("EXTRA_RECIPE_STEPS", recipe.recipeSteps)
                                         putExtra("EXTRA_RECIPE_SERVES", recipe.recipeServes)
+                                    }
+
+                                    context.startActivity(intent)
+                                },
+                                onCommentClick = {
+                                    val intent = Intent(context, CommentActivity::class.java).apply {
+                                        putExtra("EXTRA_RECIPE_ID", recipe.recipeId)
                                     }
 
                                     context.startActivity(intent)

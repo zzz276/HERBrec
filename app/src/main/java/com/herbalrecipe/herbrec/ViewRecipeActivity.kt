@@ -59,6 +59,7 @@ class ViewRecipeActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
+        val recipeId = intent.getStringExtra("EXTRA_RECIPE_ID") ?: ""
         val recipeTitle = intent.getStringExtra("EXTRA_RECIPE_TITLE") ?: "Resep untuk Diabetes Mellitus tanpa Komplikasi"
         val username = intent.getStringExtra("EXTRA_USERNAME") ?: "Username 3"
         val createdDate = intent.getStringExtra("EXTRA_CREATED_DATE") ?: "7 Juli 2026, 1:37"
@@ -70,6 +71,7 @@ class ViewRecipeActivity : ComponentActivity() {
             HERBrecTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     ViewRecipeScreen(
+                        recipeId = recipeId,
                         recipeTitle = recipeTitle,
                         username = username,
                         createdDate = createdDate,
@@ -87,6 +89,7 @@ class ViewRecipeActivity : ComponentActivity() {
 @Composable
 fun ViewRecipeScreen(
     modifier: Modifier = Modifier,
+    recipeId: String = "",
     recipeTitle: String = "Resep 1",
     username: String = "Username 3",
     createdDate: String = "7 Juli 2026, 1:37",
@@ -257,7 +260,9 @@ fun ViewRecipeScreen(
                         shape = RoundedCornerShape(18.dp)
                     )
                     .clickable {
-                        val intent = Intent(context, CommentActivity::class.java)
+                        val intent = Intent(context, CommentActivity::class.java).apply {
+                            putExtra("EXTRA_RECIPE_ID", recipeId)
+                        }
 
                         context.startActivity(intent)
                     },

@@ -1,24 +1,62 @@
 package com.herbalrecipe.herbrec.models
 
-import androidx.lifecycle.LiveData
+import androidx.room3.ColumnInfo
 import androidx.room3.Dao
+import androidx.room3.Delete
 import androidx.room3.Entity
 import androidx.room3.Insert
+import androidx.room3.OnConflictStrategy
 import androidx.room3.PrimaryKey
 import androidx.room3.Query
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
 @Entity(tableName = "comments")
+@Serializable
 data class Comment(
-    @PrimaryKey val commentId: String,
-    val userName: String,
-    val commentDesc: String,
+    @PrimaryKey
+    @ColumnInfo(name = "comment_id")
+    @SerialName("comment_id")
+    val commentId: String = "",
+
+    @ColumnInfo(name = "created_at")
+    @SerialName("created_at")
+    val createdAt: String? = null,
+
+    @ColumnInfo(name = "recipe_id")
+    @SerialName("recipe_id")
+    val recipeId: String = "",
+
+    @ColumnInfo(name = "user_id")
+    @SerialName("user_id")
+    val userId: String = "",
+
+    @ColumnInfo(name = "comment_desc")
+    @SerialName("comment_desc")
+    val commentDesc: String = "",
+
+    // UI display fallback for username
+    @ColumnInfo(name = "user_name")
+    val userName: String = "",
+
+    @ColumnInfo(name = "timestamp")
     val timestamp: String = "3 Juli 2026, 13:25"
 )
 
 @Dao
 interface CommentDao {
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertComment(comment: Comment)
-    @Query("SELECT * FROM comments ORDER BY timestamp DESC")
-    suspend fun getAllComments(): LiveData<List<Comment>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertComments(comments: List<Comment>)
+
+    @Query("SELECT * FROM comments WHERE recipe_id = :recipeId")
+    suspend fun getCommentsForRecipe(recipeId: String): List<Comment>
+
+    @Query("SELECT * FROM comments")
+    suspend fun getAllComments(): List<Comment>
+
+    @Delete
+    suspend fun deleteComment(comment: Comment)
 }

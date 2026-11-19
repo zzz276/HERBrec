@@ -35,7 +35,8 @@ import com.herbalrecipe.herbrec.ui.theme.RedBackground
 fun RecipeCard(
     recipeTitle: String,
     onDetailClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onCommentClick: () -> Unit = {}
 ) {
     Box(
         modifier = modifier
@@ -65,7 +66,9 @@ fun RecipeCard(
                 )
 
                 // Comment Icon with Badge
-                Box {
+                Box(
+                    modifier = Modifier.clickable { onCommentClick() }
+                ) {
                     Icon(
                         painter = painterResource(id = R.drawable.comment_alt_24),
                         contentDescription = "Comment",
