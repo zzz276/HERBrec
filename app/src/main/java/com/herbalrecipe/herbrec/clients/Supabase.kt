@@ -6,6 +6,9 @@ import com.herbalrecipe.herbrec.models.Favorite
 import com.herbalrecipe.herbrec.models.Recipe
 import com.herbalrecipe.herbrec.models.User
 import io.github.jan.supabase.auth.Auth
+import io.github.jan.supabase.auth.OtpType
+import io.github.jan.supabase.auth.auth
+import io.github.jan.supabase.auth.providers.builtin.Email
 import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.postgrest.Postgrest
 import io.github.jan.supabase.postgrest.from
@@ -45,12 +48,10 @@ suspend fun fetchFavoritesForUser(userId: String): List<Favorite> {
     }.decodeList<Favorite>()
 }
 
-suspend fun syncRecipesToRoom(db: AppDatabase): List<Recipe> {
-    val recipes = fetchAllRecipes()
+suspend fun syncRecipesToRoom(db: AppDatabase, recipes: List<Recipe>) {
     if (recipes.isNotEmpty()) {
         db.recipeDao().insertRecipes(recipes)
     }
-    return recipes
 }
 
 suspend fun syncUsersToRoom(db: AppDatabase): List<User> {
@@ -59,4 +60,18 @@ suspend fun syncUsersToRoom(db: AppDatabase): List<User> {
         db.userDao().insertUsers(users)
     }
     return users
+}
+
+suspend fun signIn(email: String, password: String) {
+    SupabaseInit.supabase.auth.signInWith(Email) {
+        this.email = email
+        this.password = password
+    }
+}
+
+suspend fun signUp(email: String, password: String) {
+    SupabaseInit.supabase.auth.signUpWith(Email) {
+        this.email = email
+        this.password = password
+    }
 }

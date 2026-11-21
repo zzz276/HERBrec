@@ -14,15 +14,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -31,7 +29,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
@@ -39,8 +36,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.herbalrecipe.herbrec.models.AppDatabase
 import com.herbalrecipe.herbrec.models.Comment
 import com.herbalrecipe.herbrec.ui.components.AppBar
+import com.herbalrecipe.herbrec.ui.components.CommentBar
 import com.herbalrecipe.herbrec.ui.theme.DarkMaroon
 import com.herbalrecipe.herbrec.ui.theme.HERBrecTheme
 import com.herbalrecipe.herbrec.ui.theme.RedAccent
@@ -50,10 +49,11 @@ class CommentActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        val recipeId = intent.getStringExtra("EXTRA_RECIPE_ID") ?: ""
         setContent {
             HERBrecTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    CommentScreen(modifier = Modifier.padding(innerPadding))
+                    CommentScreen(recipeId = recipeId, modifier = Modifier.padding(innerPadding))
                 }
             }
         }
@@ -61,28 +61,48 @@ class CommentActivity : ComponentActivity() {
 }
 
 @Composable
-fun CommentScreen(modifier: Modifier = Modifier) {
+fun CommentScreen(
+    modifier: Modifier = Modifier,
+    recipeId: String = ""
+) {
     val context = LocalContext.current
-    var comments by remember {
-        mutableStateOf(
-            listOf(
-                Comment(
-                    commentId = "1",
-                    userName = "Username 1",
-                    commentDesc = "唉！何時才會完成這些部分呢？",
-                    timestamp = "3 Juli 2026, 13:25"
-                ),
-                Comment(
-                    commentId = "2",
-                    userName = "Username 2",
-                    commentDesc = "몰라. 빨리 처리해야 하겠어.",
-                    timestamp = "3 Juli 2026, 13:31"
-                )
-            )
-        )
-    }
+    var comments by remember { mutableStateOf<List<Comment>>(emptyList()) }
 
-    var searchQuery by remember { mutableStateOf("") }
+    LaunchedEffect(recipeId) {
+        val db = AppDatabase.getInstance(context.applicationContext)
+        try {
+            val fetched = if (recipeId.isNotEmpty()) {
+                db.commentDao().getCommentsForRecipe(recipeId)
+            } else {
+                db.commentDao().getAllComments()
+            }
+
+            if (fetched.isNotEmpty()) {
+                comments = fetched
+            } else {
+                val defaultComments = listOf(
+                    Comment(
+                        commentId = "1",
+                        userName = "Username 1",
+                        commentDesc = "Sangat bermanfaat!",
+                        timestamp = "21 November 2026",
+                        recipeId = recipeId
+                    ),
+                    Comment(
+                        commentId = "2",
+                        userName = "Username 2",
+                        commentDesc = "Resepnya mudah diikuti.",
+                        timestamp = "21 November 2026",
+                        recipeId = recipeId
+                    )
+                )
+                db.commentDao().insertComments(defaultComments)
+                comments = defaultComments
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
 
     Box(
         modifier = modifier
@@ -93,7 +113,7 @@ fun CommentScreen(modifier: Modifier = Modifier) {
             modifier = Modifier.fillMaxSize()
         ) {
             // Header Top Bar
-            AppBar(context, "Komentar (${ comments.size })")
+            AppBar(context, "Komentar (${comments.size})")
             Spacer(modifier = Modifier.height(16.dp))
 
             // Comments List
@@ -107,66 +127,14 @@ fun CommentScreen(modifier: Modifier = Modifier) {
             ) {
                 items(comments) { comment ->
                     CommentItem(
-                        username = comment.userName,
+                        username = if (comment.userName.isNotBlank()) comment.userName else "Pengguna",
                         commentDesc = comment.commentDesc,
                         timestamp = comment.timestamp
                     )
                 }
             }
 
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 20.dp)
-                    .height(52.dp)
-                    .background(
-                        color = RedBackground,
-                        shape = RoundedCornerShape(16.dp)
-                    )
-                    .padding(horizontal = 20.dp),
-                contentAlignment = Alignment.CenterStart
-            ) {
-                BasicTextField(
-                    value = searchQuery,
-                    onValueChange = { searchQuery = it },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(end = 36.dp),
-                    textStyle = TextStyle(
-                        color = DarkMaroon,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        fontStyle = FontStyle.Italic,
-                        fontFamily = FontFamily.Serif
-                    ),
-
-                    singleLine = true,
-                    decorationBox = { innerTextField ->
-                        if (searchQuery.isEmpty()) {
-                            Text(
-                                text = "Komentar",
-                                style = TextStyle(
-                                    color = Color(0xFFAC7C7C),
-                                    fontSize = 18.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    fontStyle = FontStyle.Italic,
-                                    fontFamily = FontFamily.Serif
-                                )
-                            )
-                        }
-                        innerTextField()
-                    }
-                )
-
-                Icon(
-                    painter = painterResource(id = R.drawable.search_24),
-                    contentDescription = "Search",
-                    tint = RedAccent,
-                    modifier = Modifier
-                        .size(30.dp)
-                        .align(Alignment.CenterEnd)
-                )
-            }
+            CommentBar()
         }
     }
 }

@@ -61,8 +61,10 @@ class ViewRecipeActivity : ComponentActivity() {
 
         val recipeId = intent.getStringExtra("EXTRA_RECIPE_ID") ?: ""
         val recipeTitle = intent.getStringExtra("EXTRA_RECIPE_TITLE") ?: "Resep untuk Diabetes Mellitus tanpa Komplikasi"
-        val username = intent.getStringExtra("EXTRA_USERNAME") ?: "Username 3"
-        val createdDate = intent.getStringExtra("EXTRA_CREATED_DATE") ?: "7 Juli 2026, 1:37"
+        val userId = intent.getStringExtra("EXTRA_USER_ID")
+        val username: String = intent.getStringExtra("EXTRA_USERNAME") ?: if (!userId.isNullOrEmpty()) userId else "Username 3"
+        val rawDate = intent.getStringExtra("EXTRA_CREATED_DATE")
+        val createdDate = com.herbalrecipe.herbrec.ui.components.formatDateString(rawDate)
         val recipeIngredients = intent.getStringExtra("EXTRA_RECIPE_INGREDIENTS") ?: "10 gram herba sambiloto kering, 21 lembar atau sejumput daun mimba, dan 1 jengkal batang brotowali yang dipotong-potong."
         val recipeSteps = intent.getStringExtra("EXTRA_RECIPE_STEPS") ?: "Semua bahan direbus dengan air sebanyak 5 gelas hingga menjadi 3 gelas dengan menggunakan api kecil."
         val recipeServes = intent.getStringExtra("EXTRA_RECIPE_SERVES") ?: "Diminum 3 kali 1 gelas setiap hari, 1 jam sebelum makan."
@@ -100,6 +102,20 @@ fun ViewRecipeScreen(
     val context = LocalContext.current
     var isLiked by remember { mutableStateOf(false) }
     val scrollState = rememberScrollState()
+
+    androidx.compose.runtime.LaunchedEffect(recipeId) {
+        if (recipeId.isNotBlank()) {
+            try {
+                val comments = com.herbalrecipe.herbrec.clients.fetchCommentsForRecipe(recipeId)
+                if (comments.isNotEmpty()) {
+                    val db = com.herbalrecipe.herbrec.models.AppDatabase.getInstance(context.applicationContext)
+                    db.commentDao().insertComments(comments)
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
 
     Box(
         modifier = modifier

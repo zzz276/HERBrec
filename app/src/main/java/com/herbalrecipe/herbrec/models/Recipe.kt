@@ -56,7 +56,7 @@ interface RecipeDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertRecipes(recipes: List<Recipe>)
 
-    @Query("SELECT * FROM recipes")
+    @Query("SELECT * FROM recipes ORDER BY created_at DESC, recipe_id DESC")
     suspend fun getAllRecipes(): List<Recipe>
 
     @Query("SELECT * FROM recipes WHERE recipe_id = :recipeId")

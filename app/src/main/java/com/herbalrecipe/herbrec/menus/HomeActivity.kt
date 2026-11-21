@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -22,6 +23,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -37,6 +39,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -46,63 +49,123 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.lifecycleScope
 import com.herbalrecipe.herbrec.CommentActivity
 import com.herbalrecipe.herbrec.CreateRecipeActivity
+import com.herbalrecipe.herbrec.R
 import com.herbalrecipe.herbrec.ViewRecipeActivity
 import com.herbalrecipe.herbrec.clients.fetchAllRecipes
+import com.herbalrecipe.herbrec.clients.syncRecipesToRoom
+import com.herbalrecipe.herbrec.models.AppDatabase
 import com.herbalrecipe.herbrec.models.Recipe
 import com.herbalrecipe.herbrec.ui.components.AppBar
 import com.herbalrecipe.herbrec.ui.components.BottomNavigationBar
 import com.herbalrecipe.herbrec.ui.components.NavScreen
 import com.herbalrecipe.herbrec.ui.components.RecipeCard
 import com.herbalrecipe.herbrec.ui.theme.Black
+import com.herbalrecipe.herbrec.ui.theme.BlackCharcoal
 import com.herbalrecipe.herbrec.ui.theme.GreenSupport
 import com.herbalrecipe.herbrec.ui.theme.HERBrecTheme
 import com.herbalrecipe.herbrec.ui.theme.White
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlin.time.Duration.Companion.milliseconds
+import kotlinx.coroutines.withContext
 
 class HomeActivity : ComponentActivity() {
+    private val loadedRecipes = mutableStateListOf<Recipe>()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashscreen = installSplashScreen()
         var keepSplashScreen = true
-        super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
 
         splashscreen.setKeepOnScreenCondition { keepSplashScreen }
-        lifecycleScope.launch {
-            delay(5000.milliseconds)
-            keepSplashScreen = false
+        lifecycleScope.launch(Dispatchers.IO) {
+            val db = AppDatabase.getInstance(applicationContext)
+            try {
+                val fetched = fetchAllRecipes()
+                if (fetched.isNotEmpty()) {
+                    syncRecipesToRoom(db, fetched)
+                }
+                val local = db.recipeDao().getAllRecipes()
+                withContext(Dispatchers.Main) {
+                    loadedRecipes.clear()
+                    loadedRecipes.addAll(local)
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                val local = db.recipeDao().getAllRecipes()
+                withContext(Dispatchers.Main) {
+                    loadedRecipes.clear()
+                    loadedRecipes.addAll(local)
+                }
+            } finally {
+                withContext(Dispatchers.Main) {
+                    keepSplashScreen = false
+                }
+            }
         }
 
+        super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
         setContent {
             HERBrecTheme {
-                HomeScreen()
+                HomeScreen(loadedRecipes)
+            }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        refreshRecipes()
+    }
+
+    private fun refreshRecipes() {
+        lifecycleScope.launch(Dispatchers.IO) {
+            val db = AppDatabase.getInstance(applicationContext)
+            try {
+                val fetched = fetchAllRecipes()
+                if (fetched.isNotEmpty()) {
+                    syncRecipesToRoom(db, fetched)
+                }
+                val local = db.recipeDao().getAllRecipes()
+                withContext(Dispatchers.Main) {
+                    loadedRecipes.clear()
+                    loadedRecipes.addAll(local)
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                val local = db.recipeDao().getAllRecipes()
+                withContext(Dispatchers.Main) {
+                    loadedRecipes.clear()
+                    loadedRecipes.addAll(local)
+                }
             }
         }
     }
 }
 
 @Composable
-fun HomeScreen() {
+fun HomeScreen(initialRecipes: List<Recipe> = emptyList()) {
     val context = LocalContext.current
     val scrollState = rememberScrollState()
     val recipes = remember { mutableStateListOf<Recipe>() }
-    var isLoading by remember { mutableStateOf(true) }
+    var isLoading by remember { mutableStateOf(initialRecipes.isEmpty()) }
 
-    LaunchedEffect(Unit) {
-        isLoading = true
-        try {
-            val fetched = fetchAllRecipes()
-            if (fetched.isNotEmpty()) {
+    LaunchedEffect(initialRecipes.size) {
+        if (initialRecipes.isNotEmpty()) {
+            recipes.clear()
+            recipes.addAll(initialRecipes)
+            isLoading = false
+        } else {
+            isLoading = true
+            try {
+                val db = AppDatabase.getInstance(context.applicationContext)
+                val local = db.recipeDao().getAllRecipes()
                 recipes.clear()
-                recipes.addAll(fetched)
-            } else {
-                recipes.add(Recipe(recipeId = "2", recipeTitle = "Resep 2"))
+                recipes.addAll(local)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            } finally {
+                isLoading = false
             }
-        } catch (e: Exception) {
-            e.printStackTrace()
-            recipes.add(Recipe(recipeId = "2", recipeTitle = "Resep 2"))
-        } finally { isLoading = false }
+        }
     }
 
     Scaffold(
@@ -126,21 +189,40 @@ fun HomeScreen() {
                         .verticalScroll(scrollState),
                     verticalArrangement = Arrangement.spacedBy(20.dp)
                 ) {
-                    if (isLoading) {
+                    if (isLoading && recipes.isEmpty()) {
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(200.dp),
+                                .fillMaxHeight(),
                             contentAlignment = Alignment.Center
                         ) { CircularProgressIndicator(color = GreenSupport) }
+                    } else if (recipes.isEmpty()) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .fillMaxHeight(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "Belum ada resep.",
+                                style = TextStyle(
+                                    color = Black,
+                                    fontSize = 24.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            )
+                        }
                     } else {
                         recipes.forEach { recipe ->
                             RecipeCard(
                                 recipeTitle = recipe.recipeTitle,
+                                userName = recipe.userId,
                                 onDetailClick = {
                                     val intent = Intent(context, ViewRecipeActivity::class.java).apply {
                                         putExtra("EXTRA_RECIPE_ID", recipe.recipeId)
                                         putExtra("EXTRA_RECIPE_TITLE", recipe.recipeTitle)
+                                        putExtra("EXTRA_USER_ID", recipe.userId)
+                                        putExtra("EXTRA_CREATED_DATE", com.herbalrecipe.herbrec.ui.components.formatDateString(recipe.createdAt))
                                         putExtra("EXTRA_RECIPE_INGREDIENTS", recipe.recipeIngredients)
                                         putExtra("EXTRA_RECIPE_STEPS", recipe.recipeSteps)
                                         putExtra("EXTRA_RECIPE_SERVES", recipe.recipeServes)
@@ -185,13 +267,11 @@ fun HomeScreen() {
                     },
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = "+",
-                    style = TextStyle(
-                        color = White,
-                        fontSize = 40.sp,
-                        fontWeight = FontWeight.Bold
-                    )
+                Icon(
+                    painter = painterResource(id = R.drawable.plus),
+                    contentDescription = "Create Recipe",
+                    modifier = Modifier.size(32.dp),
+                    tint = BlackCharcoal
                 )
             }
         }

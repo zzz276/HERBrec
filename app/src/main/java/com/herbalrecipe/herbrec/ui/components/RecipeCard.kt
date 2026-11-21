@@ -36,6 +36,7 @@ fun RecipeCard(
     recipeTitle: String,
     onDetailClick: () -> Unit,
     modifier: Modifier = Modifier,
+    userName: String = "",
     onCommentClick: () -> Unit = {}
 ) {
     Box(
@@ -106,6 +107,19 @@ fun RecipeCard(
                     textAlign = TextAlign.Center
                 )
             )
+
+            if (userName.isNotBlank()) {
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "Oleh: $userName",
+                    style = TextStyle(
+                        color = Color(0xFF4A4D4A),
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium,
+                        textAlign = TextAlign.Center
+                    )
+                )
+            }
 
             Spacer(modifier = Modifier.height(12.dp))
 

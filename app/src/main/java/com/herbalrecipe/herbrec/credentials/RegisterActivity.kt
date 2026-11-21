@@ -42,6 +42,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.herbalrecipe.herbrec.R
+import com.herbalrecipe.herbrec.clients.signUp
+import com.herbalrecipe.herbrec.menus.HomeActivity
 import com.herbalrecipe.herbrec.ui.components.CredentialButton
 import com.herbalrecipe.herbrec.ui.components.CredentialTextField
 import com.herbalrecipe.herbrec.ui.theme.GreenSupport
@@ -165,6 +167,10 @@ fun RegisterScreen(modifier: Modifier = Modifier) {
                 text = "Daftar",
                 onClick = {
                     // Register action
+//                    signUp(email, password)
+
+                    val intent = Intent(context, HomeActivity::class.java)
+                    context.startActivity(intent)
                 }
             )
         }
