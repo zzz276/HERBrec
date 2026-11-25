@@ -25,11 +25,19 @@ object SupabaseInit {
 }
 
 suspend fun fetchAllRecipes(): List<Recipe> {
-    return SupabaseInit.supabase.from("recipes").select(columns = Columns.list("recipe_id, recipe_title, recipe_ingredients, recipe_steps, recipe_serves")).decodeList<Recipe>()
+    return SupabaseInit.supabase.from("recipes").select().decodeList<Recipe>()
 }
 
 suspend fun fetchAllUsers(): List<User> {
     return SupabaseInit.supabase.from("users").select().decodeList<User>()
+}
+
+suspend fun fetchAllComments(): List<Comment> {
+    return SupabaseInit.supabase.from("comments").select().decodeList<Comment>()
+}
+
+suspend fun fetchAllFavorites(): List<Favorite> {
+    return SupabaseInit.supabase.from("favorites").select().decodeList<Favorite>()
 }
 
 suspend fun fetchCommentsForRecipe(recipeId: String): List<Comment> {
@@ -48,18 +56,16 @@ suspend fun fetchFavoritesForUser(userId: String): List<Favorite> {
     }.decodeList<Favorite>()
 }
 
-suspend fun syncRecipesToRoom(db: AppDatabase, recipes: List<Recipe>) {
-    if (recipes.isNotEmpty()) {
-        db.recipeDao().insertRecipes(recipes)
-    }
-}
-
-suspend fun syncUsersToRoom(db: AppDatabase): List<User> {
+suspend fun syncToRoom(db: AppDatabase) {
     val users = fetchAllUsers()
-    if (users.isNotEmpty()) {
-        db.userDao().insertUsers(users)
-    }
-    return users
+    val recipes = fetchAllRecipes()
+    val comments = fetchAllComments()
+    val favorites = fetchAllFavorites()
+
+    if (users.isNotEmpty()) { db.userDao().insertUsers(users) }
+    if (recipes.isNotEmpty()) { db.recipeDao().insertRecipes(recipes) }
+    if (comments.isNotEmpty()) { db.commentDao().insertComments(comments) }
+    if (favorites.isNotEmpty()) { db.favoriteDao().insertFavorites(favorites) }
 }
 
 suspend fun signIn(email: String, password: String) {

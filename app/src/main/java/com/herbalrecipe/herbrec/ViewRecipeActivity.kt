@@ -28,6 +28,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -48,6 +49,8 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.herbalrecipe.herbrec.clients.fetchCommentsForRecipe
+import com.herbalrecipe.herbrec.models.AppDatabase
 import com.herbalrecipe.herbrec.ui.components.AppBar
 import com.herbalrecipe.herbrec.ui.theme.Black
 import com.herbalrecipe.herbrec.ui.theme.BlackCharcoal
@@ -61,9 +64,9 @@ class ViewRecipeActivity : ComponentActivity() {
 
         val recipeId = intent.getStringExtra("EXTRA_RECIPE_ID") ?: ""
         val recipeTitle = intent.getStringExtra("EXTRA_RECIPE_TITLE") ?: "Resep untuk Diabetes Mellitus tanpa Komplikasi"
-        val userId = intent.getStringExtra("EXTRA_USER_ID")
-        val username: String = intent.getStringExtra("EXTRA_USERNAME") ?: if (!userId.isNullOrEmpty()) userId else "Username 3"
-        val rawDate = intent.getStringExtra("EXTRA_CREATED_DATE")
+        val userId = intent.getStringExtra("EXTRA_USER_ID") ?: ""
+        val username: String = intent.getStringExtra("EXTRA_USERNAME") ?: if (userId.isNotEmpty()) userId else "Username 3"
+        val rawDate = intent.getStringExtra("EXTRA_CREATED_AT")
         val createdDate = com.herbalrecipe.herbrec.ui.components.formatDateString(rawDate)
         val recipeIngredients = intent.getStringExtra("EXTRA_RECIPE_INGREDIENTS") ?: "10 gram herba sambiloto kering, 21 lembar atau sejumput daun mimba, dan 1 jengkal batang brotowali yang dipotong-potong."
         val recipeSteps = intent.getStringExtra("EXTRA_RECIPE_STEPS") ?: "Semua bahan direbus dengan air sebanyak 5 gelas hingga menjadi 3 gelas dengan menggunakan api kecil."
@@ -75,6 +78,7 @@ class ViewRecipeActivity : ComponentActivity() {
                     ViewRecipeScreen(
                         recipeId = recipeId,
                         recipeTitle = recipeTitle,
+                        userId = userId,
                         username = username,
                         createdDate = createdDate,
                         recipeIngredients = recipeIngredients,
@@ -93,6 +97,7 @@ fun ViewRecipeScreen(
     modifier: Modifier = Modifier,
     recipeId: String = "",
     recipeTitle: String = "Resep 1",
+    userId: String = "",
     username: String = "Username 3",
     createdDate: String = "7 Juli 2026, 1:37",
     recipeIngredients: String = "10 gram herba sambiloto kering, 21 lembar atau sejumput daun mimba, dan 1 jengkal batang brotowali yang dipotong-potong.",
@@ -101,14 +106,29 @@ fun ViewRecipeScreen(
 ) {
     val context = LocalContext.current
     var isLiked by remember { mutableStateOf(false) }
+    var displayAuthorName by remember { mutableStateOf(username) }
     val scrollState = rememberScrollState()
 
-    androidx.compose.runtime.LaunchedEffect(recipeId) {
+    LaunchedEffect(userId) {
+        if (userId.isNotBlank()) {
+            try {
+                val db = AppDatabase.getInstance(context.applicationContext)
+                val user = db.userDao().getUserById(userId)
+                if (user != null && user.userName.isNotBlank()) {
+                    displayAuthorName = user.userName
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    LaunchedEffect(recipeId) {
         if (recipeId.isNotBlank()) {
             try {
-                val comments = com.herbalrecipe.herbrec.clients.fetchCommentsForRecipe(recipeId)
+                val comments = fetchCommentsForRecipe(recipeId)
                 if (comments.isNotEmpty()) {
-                    val db = com.herbalrecipe.herbrec.models.AppDatabase.getInstance(context.applicationContext)
+                    val db = AppDatabase.getInstance(context.applicationContext)
                     db.commentDao().insertComments(comments)
                 }
             } catch (e: Exception) {
@@ -153,7 +173,7 @@ fun ViewRecipeScreen(
                     text = buildAnnotatedString {
                         append("Dibuat oleh ")
                         withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                            append(username)
+                            append(displayAuthorName)
                         }
                         append(" pada tanggal ")
                         withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
@@ -182,7 +202,7 @@ fun ViewRecipeScreen(
                     Spacer(modifier = Modifier.width(16.dp))
 
                     Text(
-                        text = username,
+                        text = displayAuthorName,
                         style = TextStyle(
                             color = Black,
                             fontSize = 24.sp,

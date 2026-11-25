@@ -111,6 +111,7 @@ fun CommentBar(
                         )
                     )
                 }
+
                 innerTextField()
             }
         )
@@ -118,7 +119,6 @@ fun CommentBar(
         Icon(
             painter = painterResource(id = R.drawable.paper_plane_top),
             contentDescription = "Kirim Komentar",
-            tint = RedAccent,
             modifier = Modifier
                 .size(30.dp)
                 .align(Alignment.CenterEnd)
@@ -129,7 +129,8 @@ fun CommentBar(
                             commentText = ""
                         }
                     }
-                }
+                },
+            tint = RedAccent
         )
     }
 }

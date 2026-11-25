@@ -21,7 +21,7 @@ data class Recipe(
 
     @ColumnInfo(name = "created_at")
     @SerialName("created_at")
-    val createdAt: String? = null,
+    val createdAt: String = "",
 
     @ColumnInfo(name = "user_id")
     @SerialName("user_id")

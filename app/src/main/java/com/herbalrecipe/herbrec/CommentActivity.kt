@@ -22,6 +22,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -40,6 +41,7 @@ import com.herbalrecipe.herbrec.models.AppDatabase
 import com.herbalrecipe.herbrec.models.Comment
 import com.herbalrecipe.herbrec.ui.components.AppBar
 import com.herbalrecipe.herbrec.ui.components.CommentBar
+import com.herbalrecipe.herbrec.ui.components.formatDateTimeString
 import com.herbalrecipe.herbrec.ui.theme.DarkMaroon
 import com.herbalrecipe.herbrec.ui.theme.HERBrecTheme
 import com.herbalrecipe.herbrec.ui.theme.RedAccent
@@ -67,6 +69,7 @@ fun CommentScreen(
 ) {
     val context = LocalContext.current
     var comments by remember { mutableStateOf<List<Comment>>(emptyList()) }
+    val userNamesMap = remember { mutableStateMapOf<String, String>() }
 
     LaunchedEffect(recipeId) {
         val db = AppDatabase.getInstance(context.applicationContext)
@@ -77,30 +80,21 @@ fun CommentScreen(
                 db.commentDao().getAllComments()
             }
 
-            if (fetched.isNotEmpty()) {
-                comments = fetched
-            } else {
-                val defaultComments = listOf(
-                    Comment(
-                        commentId = "1",
-                        userName = "Username 1",
-                        commentDesc = "Sangat bermanfaat!",
-                        timestamp = "21 November 2026",
-                        recipeId = recipeId
-                    ),
-                    Comment(
-                        commentId = "2",
-                        userName = "Username 2",
-                        commentDesc = "Resepnya mudah diikuti.",
-                        timestamp = "21 November 2026",
-                        recipeId = recipeId
-                    )
-                )
-                db.commentDao().insertComments(defaultComments)
-                comments = defaultComments
+            if (fetched.isNotEmpty()) { comments = fetched }
+        } catch (e: Exception) { e.printStackTrace() }
+    }
+
+    LaunchedEffect(comments.size) {
+        if (comments.isNotEmpty()) {
+            val db = AppDatabase.getInstance(context.applicationContext)
+            comments.forEach { comment ->
+                if (comment.userId.isNotBlank() && !userNamesMap.containsKey(comment.userId)) {
+                    val user = db.userDao().getUserById(comment.userId)
+                    if (user != null && user.userName.isNotBlank()) {
+                        userNamesMap[comment.userId] = user.userName
+                    }
+                }
             }
-        } catch (e: Exception) {
-            e.printStackTrace()
         }
     }
 
@@ -126,10 +120,12 @@ fun CommentScreen(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 items(comments) { comment ->
+                    val authorName = userNamesMap[comment.userId] ?: if (comment.userName.isNotBlank()) comment.userName else if (comment.userId.isNotBlank()) comment.userId else "Pengguna"
+                    val formattedTime = formatDateTimeString(comment.createdAt)
                     CommentItem(
-                        username = if (comment.userName.isNotBlank()) comment.userName else "Pengguna",
+                        username = authorName,
                         commentDesc = comment.commentDesc,
-                        timestamp = comment.timestamp
+                        timestamp = formattedTime
                     )
                 }
             }

@@ -23,3 +23,23 @@ fun formatDateString(rawDate: String?): String {
         rawDate
     }
 }
+
+fun formatDateTimeString(rawDate: String?): String {
+    if (rawDate.isNullOrBlank()) return "23 November 2026, 22:36"
+    return try {
+        val inputFormat = if (rawDate.contains("T")) {
+            SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
+        } else {
+            SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
+        }
+        val date: Date? = inputFormat.parse(rawDate)
+        if (date != null) {
+            val outputFormat = SimpleDateFormat("dd MMMM yyyy, HH:mm", Locale.forLanguageTag("id-ID"))
+            outputFormat.format(date)
+        } else {
+            rawDate
+        }
+    } catch (_: Exception) {
+        rawDate
+    }
+}

@@ -51,8 +51,7 @@ import com.herbalrecipe.herbrec.CommentActivity
 import com.herbalrecipe.herbrec.CreateRecipeActivity
 import com.herbalrecipe.herbrec.R
 import com.herbalrecipe.herbrec.ViewRecipeActivity
-import com.herbalrecipe.herbrec.clients.fetchAllRecipes
-import com.herbalrecipe.herbrec.clients.syncRecipesToRoom
+import com.herbalrecipe.herbrec.clients.syncToRoom
 import com.herbalrecipe.herbrec.models.AppDatabase
 import com.herbalrecipe.herbrec.models.Recipe
 import com.herbalrecipe.herbrec.ui.components.AppBar
@@ -79,22 +78,9 @@ class HomeActivity : ComponentActivity() {
         lifecycleScope.launch(Dispatchers.IO) {
             val db = AppDatabase.getInstance(applicationContext)
             try {
-                val fetched = fetchAllRecipes()
-                if (fetched.isNotEmpty()) {
-                    syncRecipesToRoom(db, fetched)
-                }
-                val local = db.recipeDao().getAllRecipes()
-                withContext(Dispatchers.Main) {
-                    loadedRecipes.clear()
-                    loadedRecipes.addAll(local)
-                }
+                syncToRoom(db)
             } catch (e: Exception) {
                 e.printStackTrace()
-                val local = db.recipeDao().getAllRecipes()
-                withContext(Dispatchers.Main) {
-                    loadedRecipes.clear()
-                    loadedRecipes.addAll(local)
-                }
             } finally {
                 withContext(Dispatchers.Main) {
                     keepSplashScreen = false
@@ -120,10 +106,7 @@ class HomeActivity : ComponentActivity() {
         lifecycleScope.launch(Dispatchers.IO) {
             val db = AppDatabase.getInstance(applicationContext)
             try {
-                val fetched = fetchAllRecipes()
-                if (fetched.isNotEmpty()) {
-                    syncRecipesToRoom(db, fetched)
-                }
+                syncToRoom(db)
                 val local = db.recipeDao().getAllRecipes()
                 withContext(Dispatchers.Main) {
                     loadedRecipes.clear()
@@ -146,6 +129,7 @@ fun HomeScreen(initialRecipes: List<Recipe> = emptyList()) {
     val context = LocalContext.current
     val scrollState = rememberScrollState()
     val recipes = remember { mutableStateListOf<Recipe>() }
+    val userNamesMap = androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateMapOf<String, String>() }
     var isLoading by remember { mutableStateOf(initialRecipes.isEmpty()) }
 
     LaunchedEffect(initialRecipes.size) {
@@ -164,6 +148,20 @@ fun HomeScreen(initialRecipes: List<Recipe> = emptyList()) {
                 e.printStackTrace()
             } finally {
                 isLoading = false
+            }
+        }
+    }
+
+    LaunchedEffect(recipes.size) {
+        if (recipes.isNotEmpty()) {
+            val db = AppDatabase.getInstance(context.applicationContext)
+            recipes.forEach { recipe ->
+                if (recipe.userId.isNotBlank() && !userNamesMap.containsKey(recipe.userId)) {
+                    val user = db.userDao().getUserById(recipe.userId)
+                    if (user != null && user.userName.isNotBlank()) {
+                        userNamesMap[recipe.userId] = user.userName
+                    }
+                }
             }
         }
     }
@@ -214,15 +212,17 @@ fun HomeScreen(initialRecipes: List<Recipe> = emptyList()) {
                         }
                     } else {
                         recipes.forEach { recipe ->
+                            val authorName = userNamesMap[recipe.userId] ?: recipe.userId
                             RecipeCard(
                                 recipeTitle = recipe.recipeTitle,
-                                userName = recipe.userId,
+                                userName = authorName,
                                 onDetailClick = {
                                     val intent = Intent(context, ViewRecipeActivity::class.java).apply {
                                         putExtra("EXTRA_RECIPE_ID", recipe.recipeId)
                                         putExtra("EXTRA_RECIPE_TITLE", recipe.recipeTitle)
                                         putExtra("EXTRA_USER_ID", recipe.userId)
-                                        putExtra("EXTRA_CREATED_DATE", com.herbalrecipe.herbrec.ui.components.formatDateString(recipe.createdAt))
+                                        putExtra("EXTRA_USERNAME", authorName)
+                                        putExtra("EXTRA_CREATED_AT", com.herbalrecipe.herbrec.ui.components.formatDateString(recipe.createdAt))
                                         putExtra("EXTRA_RECIPE_INGREDIENTS", recipe.recipeIngredients)
                                         putExtra("EXTRA_RECIPE_STEPS", recipe.recipeSteps)
                                         putExtra("EXTRA_RECIPE_SERVES", recipe.recipeServes)

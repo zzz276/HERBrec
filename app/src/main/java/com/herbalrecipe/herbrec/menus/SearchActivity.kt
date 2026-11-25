@@ -27,6 +27,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -75,6 +76,7 @@ fun SearchScreen() {
     val context = LocalContext.current
     var searchQuery by remember { mutableStateOf("") }
     val searchResults = remember { mutableStateListOf<Recipe>() }
+    val userNamesMap = remember { mutableStateMapOf<String, String>() }
 
     LaunchedEffect(searchQuery) {
         val db = AppDatabase.getInstance(context.applicationContext)
@@ -89,6 +91,20 @@ fun SearchScreen() {
         } catch (e: Exception) {
             e.printStackTrace()
             searchResults.clear()
+        }
+    }
+
+    LaunchedEffect(searchResults.size) {
+        if (searchResults.isNotEmpty()) {
+            val db = AppDatabase.getInstance(context.applicationContext)
+            searchResults.forEach { recipe ->
+                if (recipe.userId.isNotBlank() && !userNamesMap.containsKey(recipe.userId)) {
+                    val user = db.userDao().getUserById(recipe.userId)
+                    if (user != null && user.userName.isNotBlank()) {
+                        userNamesMap[recipe.userId] = user.userName
+                    }
+                }
+            }
         }
     }
 
@@ -189,14 +205,16 @@ fun SearchScreen() {
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     items(searchResults) { recipe ->
+                        val authorName = userNamesMap[recipe.userId] ?: recipe.userId
                         RecipeCard(
                             recipeTitle = recipe.recipeTitle,
-                            userName = recipe.userId,
+                            userName = authorName,
                             onDetailClick = {
                                 val intent = Intent(context, ViewRecipeActivity::class.java).apply {
                                     putExtra("EXTRA_RECIPE_ID", recipe.recipeId)
                                     putExtra("EXTRA_RECIPE_TITLE", recipe.recipeTitle)
                                     putExtra("EXTRA_USER_ID", recipe.userId)
+                                    putExtra("EXTRA_USERNAME", authorName)
                                     putExtra("EXTRA_CREATED_DATE", formatDateString(recipe.createdAt))
                                     putExtra("EXTRA_RECIPE_INGREDIENTS", recipe.recipeIngredients)
                                     putExtra("EXTRA_RECIPE_STEPS", recipe.recipeSteps)

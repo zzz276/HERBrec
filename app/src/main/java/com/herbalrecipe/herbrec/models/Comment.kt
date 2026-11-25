@@ -21,7 +21,7 @@ data class Comment(
 
     @ColumnInfo(name = "created_at")
     @SerialName("created_at")
-    val createdAt: String? = null,
+    val createdAt: String = "",
 
     @ColumnInfo(name = "recipe_id")
     @SerialName("recipe_id")
@@ -38,9 +38,6 @@ data class Comment(
     // UI display fallback for username
     @ColumnInfo(name = "user_name")
     val userName: String = "",
-
-    @ColumnInfo(name = "timestamp")
-    val timestamp: String = "3 Juli 2026, 13:25"
 )
 
 @Dao
